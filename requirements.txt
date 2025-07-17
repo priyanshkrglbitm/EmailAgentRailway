@@ -1,0 +1,7 @@
+Flask
+phi
+groq
+schedule
+twilio
+python-dotenv
+gunicorn
