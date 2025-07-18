@@ -6,8 +6,8 @@ from phi.tools import tool
 from tools import send_email , read_latest_email
 
 
-# Load environment variables
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
+if os.environ.get("RAILWAY_ENVIRONMENT") is None:
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
 # Extract credentials from environment
 GMAIL_EMAIL = os.getenv("GMAIL_EMAIL")
