@@ -15,9 +15,6 @@ GMAIL_PASSKEY = os.getenv("GMAIL_PASSKEY")
 api_key = os.getenv("GROQ_API_KEY")
 SENDER_NAME = os.getenv("SENDER_NAME")
 
-# Check for required env vars
-if not all([GMAIL_EMAIL, GMAIL_PASSKEY, api_key]):
-    raise EnvironmentError("Missing one or more required environment variables.")
 
 # Initialize LLM
 llm = Groq(
