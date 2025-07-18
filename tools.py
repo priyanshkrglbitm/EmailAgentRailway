@@ -4,33 +4,28 @@ import email
 from email.header import decode_header
 import smtplib
 from email.mime.text import MIMEText
-import os
-from dotenv import load_dotenv
 import json
 
+from config import GMAIL_EMAIL, GMAIL_PASSKEY
 
-GMAIL_EMAIL = os.getenv("GMAIL_EMAIL")
-GMAIL_PASSKEY = os.getenv("GMAIL_PASSKEY")
-
+# --- Tool: Send Email ---
 @tool
 def send_email(to: str, subject: str, body: str) -> str:
     msg = MIMEText(body)
-    msg["From"] = os.getenv("GMAIL_EMAIL")
+    msg["From"] = GMAIL_EMAIL
     msg["To"] = to
     msg["Subject"] = subject
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(os.getenv("GMAIL_EMAIL"), os.getenv("GMAIL_PASSKEY"))
+        smtp.login(GMAIL_EMAIL, GMAIL_PASSKEY)
         smtp.send_message(msg)
 
     return f"Email sent to {to} with subject '{subject}'."
 
-
-
-# Core logic for reuse
+# --- Core Email Reader Logic ---
 def read_latest_email_logic(
-    email_user: str = os.getenv("GMAIL_EMAIL"),
-    email_pass: str = os.getenv("GMAIL_PASSKEY")
+    email_user: str = GMAIL_EMAIL,
+    email_pass: str = GMAIL_PASSKEY
 ) -> str:
     try:
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
@@ -74,10 +69,10 @@ def read_latest_email_logic(
     except Exception as e:
         return json.dumps({"error": str(e)})
 
-# Tool wrapper for use in Agent
+# --- Tool Wrapper for Agent ---
 @tool()
 def read_latest_email(email_user: str, email_pass: str) -> str:
     """
     Tool for agent: Reads the latest email and returns From, Subject, and Summary.
     """
-    return read_latest_email_logic(GMAIL_EMAIL, GMAIL_PASSKEY)
+    return read_latest_email_logic(email_user, email_pass)
