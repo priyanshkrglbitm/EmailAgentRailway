@@ -27,9 +27,10 @@ def check_new_email():
     else:
         print("📭 No new email.")
 
-schedule.every(5).minutes.do(check_new_email)
+if __name__ == "__main__":
+    print("📡 Email monitoring started...")
+    schedule.every(5).minutes.do(check_new_email)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-print("📡 Email monitoring started...")
-while True:
-    schedule.run_pending()
-    time.sleep(1)
