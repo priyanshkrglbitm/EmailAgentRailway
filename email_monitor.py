@@ -29,7 +29,7 @@ def check_new_email():
 
 if __name__ == "__main__":
     print("📡 Email monitoring started...")
-    schedule.every(5).minutes.do(check_new_email)
+    schedule.every(2).minutes.do(check_new_email)
     while True:
         schedule.run_pending()
         time.sleep(1)
