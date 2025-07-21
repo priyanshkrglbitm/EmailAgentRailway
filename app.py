@@ -1,5 +1,5 @@
 from flask import Flask, request, Response
-from .EmailAgent import email_agent
+from .EmailAgent import email_agent_with_attachment
 from .twilio_utils import send_whatsapp
 import os 
 
