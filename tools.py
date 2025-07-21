@@ -47,16 +47,25 @@ def read_latest_email_logic(
     try:
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         mail.login(email_user, email_pass)
-        mail.select('"[Gmail]/Inbox"')  
 
-        # Search for only emails in the 'Primary' tab
+        status, _ = mail.select("inbox")  # Use "inbox" instead of "[Gmail]/Inbox"
+        if status != "OK":
+            return json.dumps({"error": "Failed to select mailbox. IMAP status: " + status})
+
+        # Search for only emails in the 'Primary' tab (Gmail specific)
         status, data = mail.search(None, 'X-GM-RAW "category:primary"')
+        if status != "OK":
+            return json.dumps({"error": "Search command failed. IMAP status: " + status})
+
         email_ids = data[0].split()
         if not email_ids:
             return json.dumps({"error": "No emails found"})
 
         latest_email_id = email_ids[-1]
         status, data = mail.fetch(latest_email_id, "(RFC822)")
+        if status != "OK":
+            return json.dumps({"error": "Fetch command failed. IMAP status: " + status})
+
         raw_email = data[0][1]
         msg = email.message_from_bytes(raw_email)
 
@@ -86,6 +95,7 @@ def read_latest_email_logic(
 
     except Exception as e:
         return json.dumps({"error": str(e)})
+
 
 # --- Tool Wrapper for Agent ---
 @tool()
