@@ -1,9 +1,9 @@
-# Revised `app.py` with document support
+
 
 from flask import Flask, request, Response
 from EmailAgent import email_agent
 from twilio_utils import send_whatsapp, download_media
-from tools import send_email_with_attachment  # new import
+from tools import send_email_with_attachment  
 import os
 
 app = Flask(__name__)
