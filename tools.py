@@ -8,19 +8,36 @@ import json
 
 from config import GMAIL_EMAIL, GMAIL_PASSKEY
 
-# --- Tool: Send Email ---
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+
+# Send Email Tool
+
 @tool
-def send_email(to: str, subject: str, body: str) -> str:
-    msg = MIMEText(body)
+def send_email_with_attachment(to: str, subject: str, body: str, file_path: str = None) -> str:
+    msg = MIMEMultipart()
     msg["From"] = GMAIL_EMAIL
     msg["To"] = to
     msg["Subject"] = subject
+
+    msg.attach(MIMEText(body, "plain"))
+
+    if file_path:
+        part = MIMEBase("application", "octet-stream")
+        with open(file_path, "rb") as file:
+            part.set_payload(file.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(file_path)}")
+        msg.attach(part)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(GMAIL_EMAIL, GMAIL_PASSKEY)
         smtp.send_message(msg)
 
-    return f"Email sent to {to} with subject '{subject}'."
+    return f"Email sent to {to} with subject '{subject}' and attachment." if file_path else f"Email sent to {to}."
+
+
 
 # --- Core Email Reader Logic ---
 def read_latest_email_logic(
