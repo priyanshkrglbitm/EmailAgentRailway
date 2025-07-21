@@ -47,9 +47,10 @@ def read_latest_email_logic(
     try:
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         mail.login(email_user, email_pass)
-        mail.select("inbox")
+        mail.select('"[Gmail]/Inbox"')  
 
-        status, data = mail.search(None, "ALL")
+        # Search for only emails in the 'Primary' tab
+        status, data = mail.search(None, 'X-GM-RAW "category:primary"')
         email_ids = data[0].split()
         if not email_ids:
             return json.dumps({"error": "No emails found"})
