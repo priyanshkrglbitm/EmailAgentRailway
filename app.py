@@ -1,11 +1,13 @@
+# Revised `app.py` with document support
+
 from flask import Flask, request, Response
 from EmailAgent import email_agent
-from twilio_utils import send_whatsapp
-import os 
+from twilio_utils import send_whatsapp, download_media
+from tools import send_email_with_attachment  # new import
+import os
 
 app = Flask(__name__)
 user_state = {}
-
 
 @app.route("/")
 def index():
@@ -13,33 +15,49 @@ def index():
 
 @app.route("/whatsapp", methods=["POST"])
 def whatsapp_bot():
-    incoming_msg = request.form.get("Body").strip().lower()
+    incoming_msg = request.form.get("Body").strip()
     sender = request.form.get("From")
+    media_url = request.form.get("MediaUrl0")
+    media_type = request.form.get("MediaContentType0")
 
     state = user_state.get(sender, {})
     reply = ""
 
-    if incoming_msg == "hi" or incoming_msg=="Hi":
+    if incoming_msg.lower() == "hi":
         user_state[sender] = {"step": "email_to"}
         reply = "👋 Hello Priyanshu! Who should I email?"
+
     elif state.get("step") == "email_to":
-        user_state[sender]["to"] = incoming_msg
-        user_state[sender]["step"] = "email_subject"
+        state["to"] = incoming_msg
+        state["step"] = "email_subject"
         reply = "📌 Got it. What is the subject?"
+
     elif state.get("step") == "email_subject":
-        user_state[sender]["subject"] = incoming_msg
-        user_state[sender]["step"] = "email_body"
+        state["subject"] = incoming_msg
+        state["step"] = "email_body"
         reply = "📝 Please provide a brief body for the email."
+
     elif state.get("step") == "email_body":
-        prompt = (
-            f"Use Gmail to send an email to '{user_state[sender]['to']}' "
-            f"with subject '{user_state[sender]['subject']}'. "
-            f"Generate a professional body from this summary: '{incoming_msg}' "
-            f"and sign as '{os.getenv('SENDER_NAME')}'."
-        )
-        result = email_agent.run(message=prompt)
-        reply = "✅ Email sent successfully!"
+        state["body"] = incoming_msg
+        state["step"] = "attach_prompt"
+        reply = "📎 Do you want to attach a file? (yes/no)"
+
+    elif state.get("step") == "attach_prompt":
+        if incoming_msg.lower() == "yes":
+            state["step"] = "awaiting_file"
+            reply = "📤 Please upload your file now (PDF, DOCX, etc)."
+        else:
+            send_email_with_attachment(state["to"], state["subject"], state["body"])
+            reply = "✅ Email sent without attachment."
+            user_state.pop(sender)
+
+    elif state.get("step") == "awaiting_file" and media_url:
+        filename = f"/tmp/{sender.replace(':', '_')}_attachment"
+        path = download_media(media_url, filename)
+        send_email_with_attachment(state["to"], state["subject"], state["body"], path)
+        reply = "✅ Email sent with attachment."
         user_state.pop(sender)
+
     else:
         reply = "👋 Send 'Hi' to start composing an email."
 
@@ -50,6 +68,3 @@ def whatsapp_bot():
 
 if __name__ == "__main__":
     app.run(port=5000)
-
-
-
