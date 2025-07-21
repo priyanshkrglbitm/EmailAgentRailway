@@ -5,6 +5,14 @@ from config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, MY_WHATSAPP_NUMBER
 # Use Twilio sandbox number unless you have a verified custom one
 TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155238886"  # ✅ fixed sender
 
+import requests
+
+def download_media(url: str, file_path: str) -> str:
+    response = requests.get(url)
+    with open(file_path, "wb") as f:
+        f.write(response.content)
+    return file_path
+
 def send_whatsapp(message: str):
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     client.messages.create(
