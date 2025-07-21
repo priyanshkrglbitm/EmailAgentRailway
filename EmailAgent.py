@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from phi.agent import Agent
 from phi.model.groq import Groq
 from phi.tools import tool
-from tools import send_email , read_latest_email
+from tools import send_email_with_attachment , read_latest_email
 
 
 if os.environ.get("RAILWAY_ENVIRONMENT") is None:
@@ -26,7 +26,7 @@ llm = Groq(
 email_agent = Agent(
     name="email_agent",
     role="Send emails via Gmail with the given details.",
-    tools=[send_email , read_latest_email],
+    tools=[send_email_with_attachment , read_latest_email],
     model=llm,
     verbose=True
 )
