@@ -31,35 +31,3 @@ email_agent = Agent(
     verbose=True
 )
 
-# # Entrypoint
-# if __name__ == "__main__":
-#     print("--- Email Agent ---\n")
-
-#     print("What would you like to do?")
-#     print("1. Send an Email")
-#     print("2. Read the Latest Gmail Email")
-#     choice = input("Enter your choice (1 or 2): ").strip()
-
-#     if choice == "1":
-#         receiver_email = input("Receiver Email Address: ").strip()
-#         subject = input("Enter Subject of your Mail: ").strip()
-#         brief_summary = input("Describe briefly what this email is about: ").strip()
-
-#         message_prompt = (
-#             f"Use Gmail to send an email to '{receiver_email}' with subject '{subject}'. "
-#             f"Generate a formal and professional email body based on this summary: '{brief_summary}', "
-#             f"and sign it at the end with '{SENDER_NAME}'."
-#         )
-
-#         result = email_agent.run(message=message_prompt)
-#         print(result)
-
-#     elif choice == "2":
-#         message_prompt = (
-#             f"Use Gmail credentials to read the latest email and summarize its subject, sender, and body."
-#         )
-#         result = email_agent.run(message=message_prompt)
-#         print(result)
-
-#     else:
-#         print("Invalid choice. Please select 1 or 2.")
