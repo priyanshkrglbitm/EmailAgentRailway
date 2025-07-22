@@ -1,13 +1,10 @@
 from flask import Flask, request
 from twilio_utils import download_media
-from tools import send_email_with_attachment  # No longer used directly
 import os
+from tools import email_agent_with_attachment
 
 app = Flask(__name__)
 user_state = {}
-
-# Assume email_agent_with_attachment is imported and has a .run(message=..., attachment_path=None)
-from your_agent_module import email_agent_with_attachment
 
 @app.route("/")
 def index():
@@ -47,7 +44,6 @@ def whatsapp_bot():
             state["step"] = "awaiting_file"
             reply = "📤 Please upload your file now (PDF, DOCX, etc)."
         else:
-            # When NOT attaching file, call with prompt only
             prompt = (
                 f"Use Gmail to send an email to '{state['to']}' "
                 f"with subject '{state['subject']}'. "
@@ -57,11 +53,10 @@ def whatsapp_bot():
             result = email_agent_with_attachment.run(message=prompt, attachment_path=None)
             reply = "✅ Email sent successfully!"
             user_state.pop(sender)
-    
+
     elif state.get("step") == "awaiting_file" and media_url:
         filename = f"/tmp/{sender.replace(':', '_')}_attachment"
         path = download_media(media_url, filename)
-        # When attaching file, call with prompt and path
         prompt = (
             f"Use Gmail to send an email to '{state['to']}' "
             f"with subject '{state['subject']}'. "
@@ -69,7 +64,7 @@ def whatsapp_bot():
             f"and sign as '{os.getenv('SENDER_NAME')}'."
         )
         result = email_agent_with_attachment.run(message=prompt, attachment_path=path)
-        reply = "✅ Email sent successfully!"
+        reply = "✅ Email sent successfully with attachment !"
         user_state.pop(sender)
 
     else:
