@@ -1,7 +1,7 @@
 from flask import Flask, request
 from twilio_utils import download_media
 import os
-from tools import email_agent_with_attachment
+from EmailAgent import email_agent 
 
 app = Flask(__name__)
 user_state = {}
@@ -12,68 +12,58 @@ def index():
 
 @app.route("/whatsapp", methods=["POST"])
 def whatsapp_bot():
-    incoming_msg = request.form.get("Body", "").strip()
+    incoming = request.form.get("Body", "").strip()
     sender = request.form.get("From")
     media_url = request.form.get("MediaUrl0")
-    media_type = request.form.get("MediaContentType0")
 
     state = user_state.get(sender, {})
-    reply = ""
+    reply = "👋 Send 'Hi' to start composing an email."
 
-    if incoming_msg.lower() == "hi":
-        user_state[sender] = {"step": "email_to"}
-        reply = "👋 Hello Priyanshu! Who should I email?"
-
+    if incoming.lower() == "hi":
+        state = {"step": "email_to"}
+        reply = "👋 Hello! Who should I email?"
     elif state.get("step") == "email_to":
-        state["to"] = incoming_msg
+        state["to"] = incoming
         state["step"] = "email_subject"
-        reply = "📌 Got it. What is the subject?"
-
+        reply = "📌 Got it. Subject?"
     elif state.get("step") == "email_subject":
-        state["subject"] = incoming_msg
+        state["subject"] = incoming
         state["step"] = "email_body"
-        reply = "📝 Please provide a brief body for the email."
-
+        reply = "📝 Now, write a short summary for the email."
     elif state.get("step") == "email_body":
-        state["body"] = incoming_msg
+        state["body"] = incoming
         state["step"] = "attach_prompt"
-        reply = "📎 Do you want to attach a file? (yes/no)"
-
+        reply = "📎 Attach a file? (yes/no)"
     elif state.get("step") == "attach_prompt":
-        if incoming_msg.lower() == "yes":
+        if incoming.lower() == "yes":
             state["step"] = "awaiting_file"
-            reply = "📤 Please upload your file now (PDF, DOCX, etc)."
+            reply = "📤 Please upload your file now."
         else:
             prompt = (
                 f"Use Gmail to send an email to '{state['to']}' "
                 f"with subject '{state['subject']}'. "
-                f"Generate a professional body from this summary: '{state['body']}' "
+                f"Generate a proper body from this summary: '{state['body']}' "
                 f"and sign as '{os.getenv('SENDER_NAME')}'."
             )
-            result = email_agent_with_attachment.run(message=prompt, attachment_path=None)
-            reply = "✅ Email sent successfully!"
-            user_state.pop(sender)
-
+            email_agent.run(message=prompt, attachment_path=None)
+            user_state.pop(sender, None)
+            reply = "✅ Email sent without attachment!"
     elif state.get("step") == "awaiting_file" and media_url:
-        filename = f"/tmp/{sender.replace(':', '_')}_attachment"
-        path = download_media(media_url, filename)
+        path = download_media(media_url, f"/tmp/{sender.replace(':','_')}_attach")
         prompt = (
             f"Use Gmail to send an email to '{state['to']}' "
             f"with subject '{state['subject']}'. "
-            f"Generate a professional body from this summary: '{state['body']}' "
+            f"Generate a proper body from this summary: '{state['body']}' "
             f"and sign as '{os.getenv('SENDER_NAME')}'."
         )
-        result = email_agent_with_attachment.run(message=prompt, attachment_path=path)
-        reply = "✅ Email sent successfully with attachment !"
-        user_state.pop(sender)
-
+        email_agent.run(message=prompt, attachment_path=path)
+        user_state.pop(sender, None)
+        reply = "✅ Email sent with attachment!"
     else:
-        reply = "👋 Send 'Hi' to start composing an email."
+        pass
 
-    return f"""<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Message>{reply}</Message>
-</Response>"""
+    user_state[sender] = state
+    return f"""<?xml version="1.0" encoding="UTF-8"?><Response><Message>{reply}</Message></Response>"""
 
 if __name__ == "__main__":
     app.run(port=5000)
