@@ -44,7 +44,7 @@ def whatsapp_bot():
                 f"Use Gmail to send an email to '{state['to']}' "
                 f"with subject '{state['subject']}'. "
                 f"Generate a proper body from this summary: '{state['body']}' "
-                f"and sign as '{os.getenv('SENDER_NAME')}'."
+                f"and sign as '{SENDER_NAME}'."
             )
             email_agent.run(message=prompt, attachment_path=None)
             user_state.pop(sender, None)
@@ -55,7 +55,7 @@ def whatsapp_bot():
             f"Use Gmail to send an email to '{state['to']}' "
             f"with subject '{state['subject']}'. "
             f"Generate a proper body from this summary: '{state['body']}' "
-            f"and sign as '{os.getenv('SENDER_NAME')}'."
+            f"and sign as '{SENDER_NAME}'."
         )
         email_agent.run(message=prompt, attachment_path=path)
         user_state.pop(sender, None)
