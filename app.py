@@ -2,6 +2,7 @@ from flask import Flask, request
 from twilio_utils import download_media
 import os
 from EmailAgent import email_agent  # this agent wraps send_email_with_attachment tool
+from config import SENDER_NAME
 
 app = Flask(__name__)
 user_state = {}
